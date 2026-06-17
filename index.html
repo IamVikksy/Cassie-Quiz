@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SMC Film LMS - Master</title>
+    <title>Cassie FMC App</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="shortcut icon" href="./favicon.ico">
     <style>
         :root {
             /* Light Theme Variables */
@@ -342,5 +347,20 @@
     </div>
 <script src="./app-s.js"> </script>
 <script async data-id="101507524" src="//static.getclicky.com/js"></script>
+<!-- Register PWA Service Worker directly in HTML -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // The path must point to the root /sw.js
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('PWA Success! Scope is:', reg.scope);
+        })
+        .catch((err) => {
+          console.error('PWA Registration failed:', err);
+        });
+    });
+  }
+</script>
 </body>
 </html>
