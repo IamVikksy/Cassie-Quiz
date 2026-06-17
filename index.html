@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SMC Film LMS - Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Light Theme Variables */
+            --primary: #4F46E5; --primary-dark: #3730a3; --secondary: #10B981; --warning: #f59e0b; --danger: #ef4444;
+            --dark: #0f172a; --light: #f1f5f9; --white: #ffffff;
+            --text-muted: #64748b; --border-color: #e2e8f0; --btn-hover: #f8fafc;
+            --sidebar-width: 280px;
+        }
+
+        /* Dark Theme Override */
+        body[data-theme="dark"] {
+            --dark: #f8fafc; --light: #0f172a; --white: #1e293b;
+            --text-muted: #94a3b8; --border-color: #334155; --btn-hover: #334155;
+            --primary-dark: #312e81;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        body { background-color: var(--light); color: var(--dark); height: 100vh; overflow: hidden; display: flex; }
+
+        /* Navigation */
+        .sidebar { width: var(--sidebar-width); background: var(--white); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
+        .nav-item { padding: 14px 18px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
+        .nav-item.active { background: var(--primary); color: #ffffff; }
+
+        .main-stage { flex: 1; overflow-y: auto; position: relative; }
+        .content-wrap { max-width: 800px; margin: 0 auto; padding: 40px 20px 120px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Header Profile */
+        .home-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .header-profile { display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .header-pfp { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        .header-rank { font-size: 0.85rem; font-weight: 700; color: var(--primary); background: rgba(79, 70, 229, 0.1); padding: 4px 10px; border-radius: 12px; margin-top: 4px; display: inline-block;}
+
+        /* Dedication Animation */
+        .dedication-wrap { text-align: center; margin-bottom: 25px; font-weight: 700; font-size: 0.95rem; color: var(--text-muted); }
+        .rainbow-text {
+            background: linear-gradient(270deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 4s ease infinite;
+            font-weight: 900;
+        }
+        @keyframes rainbow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+        /* UI Cards */
+        .card { background: var(--white); padding: 20px; border-radius: 20px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .pfp-circle { width: 140px; height: 140px; border-radius: 50%; background: var(--border-color); border: 4px solid var(--white); box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; margin: 0 auto; }
+        
+        /* 3D Semester Cards */
+        .sem-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .sem-card {
+            background: var(--white); border: 2px solid var(--primary); border-radius: 16px;
+            padding: 20px; cursor: pointer; position: relative;
+            box-shadow: 0 8px 0 var(--primary-dark);
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: flex; flex-direction: column; min-height: 120px;
+        }
+        .sem-card:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--primary-dark); }
+        .sem-card-title { font-size: 1.3rem; font-weight: 900; color: var(--primary); text-align: center; margin: auto 0; }
+        .sem-stats { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+        .gen-quiz-card { background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; box-shadow: 0 8px 0 #064e3b; color: white; text-align: center; justify-content: center; align-items: center;}
+        .gen-quiz-card .sem-card-title { color: white; }
+        .gen-quiz-card:active { box-shadow: 0 2px 0 #064e3b; }
+
+        @media (max-width: 480px) { .sem-card-grid { grid-template-columns: 1fr; } }
+
+        /* Form & Inputs */
+        input[type="text"], input[type="number"], select { background: var(--white); color: var(--dark); border: 1.5px solid var(--border-color); padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .setting-row:last-child { border-bottom: none; }
+
+        /* Mobile Nav */
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--white); border-top: 1px solid var(--border-color); height: 80px; z-index: 1000; }
+        .mobile-nav-list { display: flex; height: 100%; list-style: none; }
+        .mobile-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); gap: 4px; }
+        .mobile-nav-item.active { color: var(--primary); }
+        .mobile-nav-item span { font-size: 1.6rem; }
+
+        /* Checkbox list for courses */
+        .course-check-item { display: flex; align-items: center; padding: 15px; background: var(--white); border: 2px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+        .course-check-item.selected { border-color: var(--primary); background: rgba(79, 70, 229, 0.05); }
+        .course-check-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 15px; pointer-events: none; }
+
+        /* Buttons & Quiz Options */
+        .btn-opt { width: 100%; padding: 18px; margin-bottom: 12px; background: var(--white); border: 2px solid var(--border-color); color: var(--dark); border-radius: 12px; text-align: left; font-size:1rem; font-weight: 550; cursor: pointer; position: relative; }
+        .btn-opt:hover { background: var(--btn-hover); }
+        .opt-correct { border-color: var(--secondary) !important; background: rgba(16, 185, 129, 0.1) !important; }
+        .opt-wrong { border-color: var(--danger) !important; background: rgba(239, 68, 68, 0.1) !important; }
+        .ans-icon { float: right; font-weight: 800; font-size: 1.1rem; }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; }
+
+        /* Rank Progress Bar */
+        .progress-bg { background: var(--border-color); height: 12px; border-radius: 6px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { background: var(--primary); height: 100%; transition: width 0.5s ease; }
+
+        /* Floating Settings (Restored) */
+        .floating-btn { display: none; position: fixed; bottom: 100px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--dark); color: var(--light); border: none; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 999; align-items: center; justify-content: center; }
+        @media (min-width: 769px) { .floating-btn { bottom: 40px; right: 40px; } }
+        
+        .settings-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: var(--white); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); z-index: 1001; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+
+        @media (max-width: 768px) { .sidebar { display: none; } .mobile-nav { display: block; } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div style="padding:30px 20px; font-weight:800; color:var(--primary); font-size:1.4rem;">PAU FILM LMS</div>
+        <nav style="padding:15px;">
+            <div class="nav-item active" onclick="switchTab('home')">🏠 Dashboard</div>
+            <div class="nav-item" onclick="switchTab('stats')">📊 Statistics</div>
+            <div class="nav-item" onclick="switchTab('history')">🕒 History</div>
+            <div class="nav-item" onclick="switchTab('profile')">👤 My Profile</div>
+        </nav>
+    </aside>
+
+    <main class="main-stage">
+        <div class="content-wrap">
+            
+            <section id="home" class="view-section active">
+                
+                <div class="dedication-wrap">✨ Dedicated to <span class="rainbow-text">Cassie Joe</span> ✨</div>
+                
+                <div class="home-header">
+                    <div class="header-profile" onclick="switchTab('profile')">
+                        <img id="header-pfp-img" class="header-pfp" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
+                        <div>
+                            <h2 id="greet-name" style="line-height:1;">Hi, Student</h2>
+                            <div class="header-rank" id="header-rank-badge">🥉 Novice</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <small style="color:var(--text-muted); font-weight:700;">Global CGPA</small>
+                        <div id="cgpa-val" style="font-size:1.5rem; font-weight:900; color:var(--primary);">0.00</div>
+                    </div>
+                </div>
+
+                <div id="levels-container"></div>
+
+                <div style="margin-top: 30px;">
+                    <div class="sem-card gen-quiz-card" onclick="openGeneralQuiz()">
+                        <div class="sem-card-title">🌍 General Quiz</div>
+                        <div style="font-size:0.85rem; margin-top:5px; font-weight:600;">Mix all levels and courses!</div>
+                    </div>
+                </div>
+                <div id="v-sig-vault" style="display: none;">Made with ❤️ for Cassie - Created Vikksy</div>
+
+            </section>
+
+            <section id="course-select" class="view-section">
+                <button onclick="switchTab('home')" style="background:none; border:none; color:var(--text-muted); font-weight:700; cursor:pointer; font-size:1.1rem; margin-bottom:20px;">← Back to Home</button>
+                <h2 id="select-title" style="margin-bottom:10px;">Select Courses</h2>
+                <p style="color:var(--text-muted); margin-bottom:20px;">Choose one or more courses to include in your quiz session.</p>
+                
+                <div id="course-checkbox-list"></div>
+                
+                <button class="btn-primary" onclick="startSelectedCourses()" style="margin-top: 20px;">Start Quiz 🚀</button>
+            </section>
+
+            <section id="stats" class="view-section">
+                <h2>Statistics</h2>
+                <div class="card" style="height:320px; margin-top:20px;"><canvas id="historyChart"></canvas></div>
+            </section>
+
+            <section id="history" class="view-section">
+                <h2>Quiz History</h2>
+                <div class="card" style="margin-top:20px;" id="history-list"></div>
+            </section>
+
+            <section id="profile" class="view-section">
+                <div class="card" style="text-align:center;">
+                    <div class="pfp-circle"><img id="pfp-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" style="width:100%; height:100%; object-fit:cover;"></div>
+                    <button onclick="document.getElementById('pfp-in').click()" style="margin-top:15px; padding:8px 16px; background:var(--border-color); color:var(--dark); border:none; border-radius:12px; font-weight:700; cursor:pointer;">Change Photo</button>
+                    <input type="file" id="pfp-in" style="display:none" accept="image/*" onchange="updatePFP(this)">
+                    <div style="margin-top:25px;">
+                        <input type="text" id="name-in" placeholder="Your Name" style="text-align:center;">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom:15px;">Ranking & Progress</h3>
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                        <div id="prof-rank-icon" style="font-size:3rem;">🌱</div>
+                        <div>
+                            <div id="prof-rank-name" style="font-size:1.5rem; font-weight:900; color:var(--primary);">Unranked</div>
+                            <div id="prof-rank-req" style="font-size:0.9rem; color:var(--text-muted); font-weight:600;">Answer 200 questions correctly</div>
+                        </div>
+                    </div>
+                    <div class="progress-bg">
+                        <div id="prof-rank-fill" class="progress-fill" style="width:0%;"></div>
+                    </div>
+                    <div id="prof-rank-text" style="text-align:right; font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-top:5px;">0 / 200 Correct</div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:15px;">All Ranks</h3>
+                    <div id="all-ranks-list" style="display:flex; flex-direction:column; gap:8px; max-height: 250px; overflow-y: auto; padding-right: 5px;"></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:15px;">App Settings</h3>
+                    <div class="setting-row">
+                        <span><strong>Dark Mode</strong></span>
+                        <select id="set-theme" onchange="updateSettings('theme', this.value)" style="width:auto; margin:0;">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span><strong>Immediate Reveal</strong><br><small>Show answers instantly</small></span>
+                        <select id="set-reveal" onchange="updateSettings('reveal', this.value)" style="width:auto; margin:0;">
+                            <option value="false">Off</option>
+                            <option value="true">On</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span><strong>Question Timer</strong></span>
+                        <select id="set-timer" onchange="updateSettings('timer', this.value)" style="width:auto; margin:0;">
+                            <option value="10">10 Secs</option>
+                            <option value="20">20 Secs</option>
+                            <option value="30">30 Secs</option>
+                            <option value="45">45 Secs</option>
+                            <option value="60">1 Min</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span><strong>Quiz Length Max</strong><br><small>Limits total Qs per session</small></span>
+                        <select id="set-length" onchange="updateSettings('length', this.value)" style="width:auto; margin:0;">
+                            <option value="10">10 Qs</option>
+                            <option value="20">20 Qs</option>
+                            <option value="50">50 Qs</option>
+                            <option value="100">100 Qs</option>
+                            <option value="999">All Selected</option>
+                        </select>
+                    </div>
+                </div>
+                    
+                <div class="card">
+    <h3 style="margin-bottom:15px;">Data Backup & Recovery</h3>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">
+        Switching devices or browsers? Download your data as a backup file and import it anytime to pick up where you left off.
+    </p>
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button onclick="exportAppData()" class="btn-primary" style="flex:1; background:var(--secondary);">📥 Export Backup</button>
+        <button onclick="document.getElementById('import-file-input').click()" class="btn-primary" style="flex:1; background:var(--warning);">📤 Import Backup</button>
+    </div>
+    <input type="file" id="import-file-input" style="display:none" accept=".json" onchange="importAppData(this)">
+</div>
+                
+                <div style="text-align:center;">
+                    <button onclick="resetData()" style="margin:20px 0; color:var(--danger); border:none; background:none; cursor:pointer; text-decoration:underline; font-weight:bold;">Reset All App Data</button>
+                </div>
+            </section>
+
+            <section id="quiz" class="view-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border-color); padding-bottom:10px; margin-bottom:20px;">
+                    <div>
+                        <h2 id="q-header">Question</h2>
+                        <div id="q-course-tag" style="font-size:0.8rem; font-weight:800; color:var(--text-muted);">GST 111</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:800; font-size:1.2rem; color:var(--danger);">⏳ <span id="timer-ui">30</span>s</div>
+                        <button onclick="confirmEndQuiz()" style="font-size:0.8rem; color:var(--danger); border:none; background:none; font-weight:bold; cursor:pointer; text-decoration:underline;">End Quiz</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <p id="q-text" style="font-size:1.3rem; font-weight:500; margin-bottom:15px;"></p>
+                    
+                    <div style="text-align:right; margin-bottom:15px;">
+                        <button id="hint-btn" onclick="useHint()" style="padding:6px 12px; border-radius:8px; border:1px solid var(--warning); background:rgba(245, 158, 11, 0.1); color:var(--warning); font-weight:bold; cursor:pointer;">💡 Hint (3)</button>
+                    </div>
+                    <div id="hint-text" style="display:none; padding:15px; background:rgba(245, 158, 11, 0.1); border-left:4px solid var(--warning); border-radius:8px; margin-bottom:15px; font-size:0.9rem; font-weight:600;"></div>
+
+                    <div id="q-options"></div>
+                    <button id="next-q-btn" onclick="nextQuestion()" class="btn-primary" style="display:none; margin-top:20px;">Next Question ➔</button>
+                </div>
+            </section>
+
+            <section id="result" class="view-section">
+                <div class="card" style="text-align:center; padding:40px;">
+                    <h1 id="res-score" style="font-size:4rem; color:var(--primary);">0%</h1>
+                    <h2 id="res-waec" style="margin-bottom:20px;">Grade: F9</h2>
+                    <p id="res-time" style="margin-bottom:20px; color:var(--text-muted); font-weight:bold;"></p>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="switchTab('review')" style="flex:1; padding:15px; background:var(--white); border:2px solid var(--primary); color:var(--primary); border-radius:12px; font-weight:800; cursor:pointer;">Review</button>
+                        <button onclick="switchTab('home')" class="btn-primary" style="flex:1;">Finish</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="review" class="view-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2>Quiz Review</h2>
+                    <button onclick="switchTab('result')" style="padding:8px 16px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Back to Score</button>
+                </div>
+                <div id="review-list"></div>
+            </section>
+
+        </div>
+    </main>
+
+    <nav class="mobile-nav">
+        <div class="mobile-nav-list">
+            <div class="mobile-nav-item active" onclick="switchTab('home')"><span>🏠</span>Home</div>
+            <div class="mobile-nav-item" onclick="switchTab('stats')"><span>📊</span>Stats</div>
+            <div class="mobile-nav-item" onclick="switchTab('history')"><span>🕒</span>History</div>
+            <div class="mobile-nav-item" onclick="switchTab('profile')"><span>👤</span>Profile</div>
+        </div>
+    </nav>
+
+    <button class="floating-btn" id="float-settings-btn" onclick="toggleQuizSettings()">⚙️</button>
+    <div class="modal-overlay" id="modal-overlay" onclick="toggleQuizSettings()"></div>
+    <div class="settings-modal" id="quiz-settings-modal">
+        <h3 style="margin-bottom:20px; text-align:center;">Quick Settings</h3>
+        <div class="setting-row">
+            <span><strong>Theme</strong></span>
+            <select id="quick-theme" onchange="updateSettings('theme', this.value)" style="width:auto; margin:0;">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+        <div class="setting-row">
+            <span><strong>Immediate Reveal</strong></span>
+            <select id="quick-reveal" onchange="updateSettings('reveal', this.value)" style="width:auto; margin:0;">
+                <option value="false">Off</option>
+                <option value="true">On</option>
+            </select>
+        </div>
+        <button onclick="toggleQuizSettings()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:20px; cursor:pointer;">Close & Resume</button>
+    </div>
+<script src="./scripts/app.js"> </script>
+</body>
+</html>
